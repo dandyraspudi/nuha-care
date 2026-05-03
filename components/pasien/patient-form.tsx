@@ -1,9 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Save, RotateCcw, CircleAlert } from "lucide-react";
+import { usePatientStore } from "@/store/patient-store";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const schema = z.object({
   name: z.string().min(3, "Nama minimal 3 karakter"),
@@ -17,29 +30,46 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function PatientForm() {
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const {
     register,
     handleSubmit,
     reset,
+    trigger,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
+  const { addPatient } = usePatientStore();
+
   const onSubmit = async (data: FormData) => {
     await new Promise((r) => setTimeout(r, 800));
 
-    console.log(data);
+    addPatient({
+      id: crypto.randomUUID(),
+      ...data,
+    });
 
-    alert("Pasien berhasil didaftarkan");
     reset();
   };
 
+  const openConfirmDialog = async () => {
+    const isValid = await trigger();
+
+    if (isValid) {
+      setIsConfirmOpen(true);
+    }
+  };
+
+  const savePatient = handleSubmit(async (data) => {
+    await onSubmit(data);
+    toast.success("Data pasien berhasil disimpan");
+    setIsConfirmOpen(false);
+  });
+
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="border rounded-md p-5 shadow-sm bg-white dark:bg-zinc-900"
-    >
+    <form className="border rounded-md p-5 shadow-sm bg-white dark:bg-zinc-900">
       <div>
         <h1 className="text-xl font-bold">Formulir Pasien Masuk</h1>
 
@@ -118,13 +148,16 @@ export default function PatientForm() {
             <div className="space-y-4">
               <div>
                 <label className="mb-2 block text-sm font-medium">
-                  Dokter Penanggung Jawab <span className="text-red-500">*</span>
+                  Dokter Penanggung Jawab{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <select
                   {...register("doctor")}
                   className="w-full rounded-md border px-4 py-2"
                 >
-                  <option value="">Pilih Dokter</option>
+                  <option value="" className="text-muted-foreground">
+                    Pilih dokter penanggung jawab
+                  </option>
                   <option>dr. Budi</option>
                   <option>dr. Anisa</option>
                   <option>dr. Citra</option>
@@ -139,7 +172,9 @@ export default function PatientForm() {
                   {...register("room")}
                   className="w-full rounded-md border px-4 py-2"
                 >
-                  <option value="">Pilih Ruangan</option>
+                  <option value="" className="text-muted-foreground">
+                    Pilih ruangan
+                  </option>
                   <option>VIP 1</option>
                   <option>VIP 2</option>
                   <option>Kelas 1A</option>
@@ -147,7 +182,7 @@ export default function PatientForm() {
                 </select>
               </div>
 
-              <div className="bg-blue-100 rounded-sm p-3 flex items-center gap-2">
+              <div className="bg-blue-100 rounded-sm p-3 flex items-center gap-2 dark:bg-slate-700">
                 <CircleAlert size={30} className="text-blue-500" />
                 <label className="block text-sm font-medium text-muted-foreground">
                   Pastikan data yang diinput sudah benar sebelum disimpan
@@ -155,7 +190,7 @@ export default function PatientForm() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
               <button
                 className="flex items-center gap-1 justify-center rounded-sm bg-white px-4 py-2 font-medium text-slate-700 cursor-pointer transition hover:bg-gray-100 border"
                 type="button"
@@ -164,14 +199,45 @@ export default function PatientForm() {
                 <RotateCcw size={18} className="inline-block mr-1" />
                 Reset
               </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex items-center gap-1 justify-center rounded-sm bg-blue-600 px-4 py-2 font-medium text-white cursor-pointer transition hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              <AlertDialog
+                open={isConfirmOpen}
+                onOpenChange={setIsConfirmOpen}
               >
-                <Save size={18} className="inline-block mr-1" />
-                {isSubmitting ? "Menyimpan..." : "Daftarkan Pasien"}
-              </button>
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={openConfirmDialog}
+                  className="flex items-center gap-1 justify-center rounded-sm bg-blue-600 px-4 py-2 font-medium text-white cursor-pointer transition hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  <Save size={18} className="inline-block mr-1" />
+                  Daftarkan Pasien
+                </button>
+
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Simpan Data Pasien?</AlertDialogTitle>
+
+                    <AlertDialogDescription>
+                      Data pasien akan disimpan ke dalam sistem.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className={"cursor-pointer"}>
+                      Batal
+                    </AlertDialogCancel>
+
+                    <AlertDialogAction
+                      onClick={() => void savePatient()}
+                      className={"cursor-pointer"}
+                      disabled={isSubmitting}
+                      type="button"
+                    >
+                      {isSubmitting ? "Menyimpan..." : "Ya, Simpan"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </div>

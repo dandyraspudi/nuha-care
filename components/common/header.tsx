@@ -12,10 +12,6 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="rounded-xl border bg-background p-2 text-foreground transition hover:bg-accent hover:text-accent-foreground">
-          <Bell size={18} />
-        </button>
-
         <ThemeToggle />
 
         <div className="text-sm">

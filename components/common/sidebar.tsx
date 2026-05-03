@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutDashboard, Users, FilePlus2, BedDouble } from "lucide-react";
+import { LayoutDashboard, Users, FilePlus2, Headset } from "lucide-react";
 import { usePathname } from "next/dist/client/components/navigation";
 
 const menus = [
@@ -62,9 +62,13 @@ export default function Sidebar({ mobile = false }: SidebarProps) {
 
       {/* Footer */}
       <div className="p-4">
-        <div className="rounded-xl bg-primary/10 p-4 text-primary text-center">
-          <BedDouble size={20} />
-          <p className="mt-2 text-sm">Rawat Inap Management</p>
+        <div className="rounded-md bg-primary/10 p-4 text-primary dark:text-white gap-2 flex justify-center items-center">
+          <Headset size={50} />
+          <div>
+            <p className="text-sm font-semibold">Butuh Bantuan?</p>
+            <p className="text-sm">Call Center</p>
+            <p className="text-sm font-semibold">0819 2959 9888</p>
+          </div>
         </div>
       </div>
     </aside>

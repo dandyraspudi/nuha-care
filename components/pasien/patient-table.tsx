@@ -1,7 +1,22 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { mockPatients } from "@/lib/mock-data";
+import { usePatientStore } from "@/store/patient-store";
+import { Trash } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useDebounce } from "@/hooks/use-debounce";
+import Loading from "@/components/ui/loading";
 import LoadingSkeleton from "./patient-skeleton";
 
 const perPage = 5;
@@ -9,8 +24,11 @@ const perPage = 5;
 export default function PatientTable() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
   const [sortBy, setSortBy] = useState("name");
   const [page, setPage] = useState(1);
+  const { patients, deletePatient } = usePatientStore();
+  const isSearching = search !== debouncedSearch;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -21,13 +39,16 @@ export default function PatientTable() {
   }, []);
 
   const filtered = useMemo(() => {
-    let data = [...mockPatients];
+    let data = [...patients];
+    const keyword = debouncedSearch.trim().toLowerCase();
 
-    data = data.filter(
-      (item) =>
-        item.name.toLowerCase().includes(search.toLowerCase()) ||
-        item.nik.includes(search)
-    );
+    if (keyword) {
+      data = data.filter(
+        (item) =>
+          item.name.toLowerCase().includes(keyword) ||
+          item.nik.toLowerCase().includes(keyword)
+      );
+    }
 
     data.sort((a, b) => {
       if (sortBy === "name") {
@@ -41,7 +62,7 @@ export default function PatientTable() {
     });
 
     return data;
-  }, [search, sortBy]);
+  }, [patients, debouncedSearch, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const currentPage = Math.min(page, totalPages);
@@ -55,20 +76,28 @@ export default function PatientTable() {
       ? []
       : Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  if (loading) return <LoadingSkeleton />;
+  if (loading) {
+    return (
+      <div className="rounded-md border bg-card p-10 text-card-foreground">
+        <LoadingSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center">
-        <input
-          placeholder="Cari nama / NIK..."
-          className="rounded-md border bg-background px-4 py-2 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-        />
+        <div className="space-y-1">
+          <input
+            placeholder="Cari nama / NIK..."
+            className="rounded-md border bg-background px-4 py-2 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
 
         <select
           className="rounded-md border bg-background px-4 py-2 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
@@ -93,11 +122,18 @@ export default function PatientTable() {
               <th className="p-4 text-left">Dokter</th>
               <th className="p-4 text-left">Ruangan</th>
               <th className="p-4 text-left">Tanggal</th>
+              <th className="p-4 text-left">Action</th>
             </tr>
           </thead>
 
           <tbody>
-            {paginated.length > 0 ? (
+            {isSearching ? (
+              <tr>
+                <td colSpan={7} className="p-8 text-center">
+                  <Loading size="sm" label="Mencari pasien..." />
+                </td>
+              </tr>
+            ) : paginated.length > 0 ? (
               paginated.map((item, idx) => (
                 <tr
                   key={item.id}
@@ -109,12 +145,48 @@ export default function PatientTable() {
                   <td className="p-4">{item.doctor}</td>
                   <td className="p-4">{item.room}</td>
                   <td className="p-4">{item.admissionDate}</td>
+                  <td className="p-4">
+                    <AlertDialog>
+                      <AlertDialogTrigger className="rounded-sm bg-red-500 px-3 py-2 text-white cursor-pointer transition hover:bg-red-600 flex items-center gap-1">
+                        <Trash size={18} className="inline" /> Hapus
+                      </AlertDialogTrigger>
+
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Hapus Data Pasien?
+                          </AlertDialogTitle>
+
+                          <AlertDialogDescription>
+                            Data pasien akan dihapus permanen dari daftar aktif.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className={"cursor-pointer"}>
+                            Batal
+                          </AlertDialogCancel>
+
+                          <AlertDialogAction
+                            onClick={() => {
+                              deletePatient(item.id);
+
+                              toast.success("Data pasien berhasil dihapus");
+                            }}
+                            className={"cursor-pointer"}
+                          >
+                            Ya, Hapus
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="p-6 text-center text-muted-foreground"
                 >
                   Data tidak ditemukan
