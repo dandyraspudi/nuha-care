@@ -62,7 +62,7 @@ export default function Sidebar({ mobile = false }: SidebarProps) {
 
       {/* Footer */}
       <div className="p-4">
-        <div className="rounded-xl bg-primary/10 p-4 text-primary">
+        <div className="rounded-xl bg-primary/10 p-4 text-primary text-center">
           <BedDouble size={20} />
           <p className="mt-2 text-sm">Rawat Inap Management</p>
         </div>

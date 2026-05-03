@@ -62,7 +62,7 @@ export default function PatientTable() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center">
         <input
           placeholder="Cari nama / NIK..."
-          className="rounded-xl border bg-background px-4 py-2 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+          className="rounded-md border bg-background px-4 py-2 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -71,7 +71,7 @@ export default function PatientTable() {
         />
 
         <select
-          className="rounded-xl border bg-background px-4 py-2 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+          className="rounded-md border bg-background px-4 py-2 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
           value={sortBy}
           onChange={(e) => {
             setSortBy(e.target.value);
@@ -83,7 +83,7 @@ export default function PatientTable() {
         </select>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border bg-card text-card-foreground">
+      <div className="overflow-x-auto rounded-md border bg-card text-card-foreground">
         <table className="w-full text-sm">
           <thead className="border-b bg-muted text-muted-foreground">
             <tr>
@@ -135,7 +135,7 @@ export default function PatientTable() {
             type="button"
             disabled={currentPage === 1}
             onClick={() => setPage(Math.max(1, currentPage - 1))}
-            className="cursor-pointer rounded-xl border bg-background px-4 py-2 text-sm transition hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            className="font-semibold cursor-pointer rounded-xl border bg-background px-4 py-2 text-sm transition hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
             Sebelumnya
           </button>
@@ -148,7 +148,7 @@ export default function PatientTable() {
               aria-current={currentPage === pageNumber ? "page" : undefined}
               className={`cursor-pointer rounded-xl px-4 py-2 text-sm transition ${
                 currentPage === pageNumber
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-primary text-primary-foreground font-semibold"
                   : "border bg-background hover:bg-accent hover:text-accent-foreground"
               }`}
             >
@@ -160,7 +160,7 @@ export default function PatientTable() {
             type="button"
             disabled={currentPage === totalPages}
             onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
-            className="cursor-pointer rounded-xl border bg-background px-4 py-2 text-sm transition hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            className="font-semibold cursor-pointer rounded-xl border bg-background px-4 py-2 text-sm transition hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
             Berikutnya
           </button>
