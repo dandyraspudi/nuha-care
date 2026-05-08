@@ -1,7 +1,6 @@
 "use client";
 
 import ThemeToggle from "./theme-toggle";
-import { Bell } from "lucide-react";
 import MobileSidebar from "./mobile-sidebar";
 
 export default function Header() {
